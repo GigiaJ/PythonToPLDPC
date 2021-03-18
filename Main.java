@@ -20,7 +20,7 @@ public class Main {
 
     /**
      * Reads the python code to a point to prevent translating required methods from input and returns it as a string
-     * @return the python code
+     * @return              the python code
      */
     private static String readInput() {
         String string = "";
