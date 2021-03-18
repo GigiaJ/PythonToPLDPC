@@ -125,13 +125,27 @@ public class Main {
     private static boolean translateOutput(String string) {
         if (string.startsWith("output(")) {
             /*Replace + with commas and remove non-quote spaces*/
-            string = string.replaceAll("\\+", ",");
+            //string = string.replaceAll("\\+", ",");
 
             //This pattern will match the outer most parenthesis
             Matcher betweenParanthesis = Pattern.compile("\\((.*)\\)").matcher(string);
             if (betweenParanthesis.find()) {
-                //Remove type casting here
-                output("output " + betweenParanthesis.group(1));
+                String outputLine = betweenParanthesis.group(1);
+                final String TYPECAST_PATTERN = "((\\w*)(\\((.*)\\)))";
+                final String PLACEHOLDER_STRING = "ewqe21ewer158ABE}"; //A random string to prevent incorrect replacement
+                Matcher typeMatch = Pattern.compile(TYPECAST_PATTERN).matcher(outputLine);
+                while (typeMatch.find()) {
+                    String match = typeMatch.group(1);
+                    String replacementMatch = typeMatch.group(4);
+                    if (replacementMatch.contains("+")) {
+                        replacementMatch = replacementMatch.replaceAll("\\+", PLACEHOLDER_STRING);
+                    }
+                    outputLine = outputLine.replace(match, replacementMatch);
+                    typeMatch = Pattern.compile(TYPECAST_PATTERN).matcher(outputLine);
+                }
+                outputLine = outputLine.replaceAll("\\+", ",");
+                outputLine = outputLine.replaceAll(PLACEHOLDER_STRING, "+");
+                output("output " + outputLine);
             }
             return true;
         }
@@ -158,7 +172,7 @@ public class Main {
             String stepValue = (rangeParameters.contains(",")) ? rangeParameters.substring(rangeParameters.lastIndexOf(",")) : "1";
             String startingValue = (rangeParameters.contains(",")) ? rangeParameters.substring(0, rangeParameters.indexOf(",")) : "0";
             String finalValue = (rangeParameters.contains(",")) ? rangeParameters.substring(rangeParameters.indexOf(","), rangeParameters.lastIndexOf(",")) : rangeParameters;
-            output(Keyword.FOR + " " + loopControlVariable + " = " + startingValue + " to " + finalValue + " step " + stepValue);
+            output(Keyword.FOR.getName() + " " + loopControlVariable + " = " + startingValue + " to " + finalValue + " step " + stepValue);
             return true;
         }
         return false;
