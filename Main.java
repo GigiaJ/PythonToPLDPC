@@ -1,4 +1,4 @@
-package com.company;
+package testing;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -13,7 +13,7 @@ public class Main {
         translateDeclarations(code);
         code = translateOperands(code);
         /**Program logic**/
-        code = code.substring(code.indexOf("def start():") + 12, code.indexOf("def output(string):"));
+        code = code.substring(code.indexOf("def start():") + 12, code.indexOf("def output"));
         translateProgramLogic(code);
         endTranslation();
     }
@@ -27,7 +27,7 @@ public class Main {
         Scanner s = new Scanner(System.in);
         while (s.hasNextLine()){
             String line = s.nextLine();
-            if ("    start()".equals(line)) {
+            if (line.contains("if __name__ == '__main__':")) {
                 break;
             }
             string += "\n" + line;
@@ -98,6 +98,10 @@ public class Main {
         code = code.replaceAll(" and ", " AND ");
         code = code.replaceAll(" or ", " OR ");
         code = code.replaceAll(" != ", " <> ");
+        code = code.replaceAll(" \\| ", " OR ");
+        code = code.replaceAll(" \\|\\| " , " OR ");
+        code = code.replaceAll(" \\& ", " AND ");
+        code = code.replaceAll(" \\&\\& ", " AND ");
         return code;
     }
 
@@ -117,16 +121,14 @@ public class Main {
             int tabs = 0;
             Matcher lineTabulation = Pattern.compile("(\\t)").matcher(line);
             while (lineTabulation.find()) {
-                System.out.print("\t");
+            	outputTabs(1); //Output a single tab per found tabulation
                 tabs++;
             }
             for (int i = 0; i < activeKeywords.size(); i++) {
                 if (activeKeywords.get(i).tabValue >= tabs) {
                     System.out.println(activeKeywords.get(i).getClosingKeyword());
                     activeKeywords.remove(i);
-                    for (int x = 0; x < tabs; x++) {
-                        System.out.print("\t");
-                    }
+                    outputTabs(tabs);
                     break;
                 }
             }
@@ -144,6 +146,19 @@ public class Main {
                 output(line);
             }
 
+        }
+        /*
+         * This ensures that if the lines following the method are effectively
+         * end of file that they are not ignored and an end for the keyword is placed
+         * Additionally, it is iterated through in reverse order as they are added in forward
+         * meaning that the least tabulated keyword is at the front
+         */
+        if (!activeKeywords.isEmpty()) {
+        	for (int i = activeKeywords.size() - 1; i >= 0; i--) {
+        		outputTabs(activeKeywords.get(i).tabValue);
+        		System.out.println(activeKeywords.get(i).getClosingKeyword());
+        	}
+        	activeKeywords.clear();
         }
     }
 
@@ -263,6 +278,16 @@ public class Main {
             return true;
         }
         return false;
+    }
+    
+    /**
+     * Prints a given amount of tabs based on the integer passed
+     * @param tabs				the number of tabs to output
+     */
+    private static void outputTabs(int tabs) {
+        for (int x = 0; x < tabs; x++) {
+        	System.out.print("\t");
+        }
     }
 
     /**
